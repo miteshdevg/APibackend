@@ -107,12 +107,25 @@ if (!fs.existsSync('uploads')) {
 }
 
 // 🧠 Store files with original names + timestamp
+// const storage = multer.diskStorage({
+//     destination: (req, file, cb) => cb(null, 'uploads/'),
+//     filename: (req, file, cb) => {
+//         const timestamp = Date.now();
+//         const safeName = file.originalname.replace(/\s+/g, '-');
+//         cb(null, `${timestamp}-${safeName}`);
+//     },
+// });
+
 const storage = multer.diskStorage({
     destination: (req, file, cb) => cb(null, 'uploads/'),
     filename: (req, file, cb) => {
-        const timestamp = Date.now();
-        const safeName = file.originalname.replace(/\s+/g, '-');
-        cb(null, `${timestamp}-${safeName}`);
+        const now = new Date();
+        const date = now.toISOString().split('T')[0]; // e.g. 2025-03-30
+        const time = now.toTimeString().split(' ')[0].replace(/:/g, '-'); // e.g. 16-15-00
+        const originalName = file.originalname.replace(/\s+/g, '-'); // remove spaces
+
+        const finalName = `${date}_${time}_${originalName}`;
+        cb(null, finalName);
     },
 });
 
@@ -142,6 +155,9 @@ app.post('/convert/docx-to-pdf', upload.single('file'), async (req, res) => {
     }
 });
 
+app.get("/", (req, res) => {
+    res.send("Convert PDF to word and Word to Pdf API is running 🚀");
+});
 // 📥 PDF → DOCX
 app.post('/convert/pdf-to-docx', upload.single('file'), (req, res) => {
     const inputPath = req.file.path;
